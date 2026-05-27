@@ -33,6 +33,10 @@ defmodule CrucibleSignalTest do
              :norm_telemetry,
              :moe_router_logits,
              :kv_cache,
+             :kv_cache_state,
+             :world_model_state,
+             :verifier_signal,
+             :logit_lens_intermediate,
              :late_residuals,
              :intermediate_logits,
              :final_logits,
@@ -57,7 +61,7 @@ defmodule CrucibleSignalTest do
            ]
 
     assert {:ok, :route_on} = Operation.normalize("route-on")
-    assert CaptureMode.all() == [:summary, :sample, :raw, :external_ref]
+    assert CaptureMode.all() == [:summary, :sample, :compressed_vector, :raw, :external_ref]
   end
 
   test "builds validated signal refs" do
@@ -134,7 +138,42 @@ defmodule CrucibleSignalTest do
     assert {:ok, json} = Jason.encode(ref)
     assert {:ok, decoded} = Jason.decode(json)
     assert decoded["trace_id"] == "trace-1"
-    assert decoded["signal_type"] == "kv_cache"
+    assert decoded["signal_type"] == "kv_cache_state"
+  end
+
+  test "builds factory refs for added signal classes" do
+    base = [trace_id: "trace-2", model_ref: "model:fixture"]
+
+    assert SignalRef.for_moe_router(3, base).signal_type == :moe_router_logits
+    assert SignalRef.for_world_model(base).signal_type == :world_model_state
+    assert SignalRef.for_verifier(base).signal_type == :verifier_signal
+    assert SignalRef.for_logit_lens(8, base).signal_type == :logit_lens_intermediate
+    assert SignalRef.for_kv_cache(4, base).signal_type == :kv_cache_state
+
+    assert SignalRef.for_layer_residual(4, Keyword.put(base, :capture_mode, :compressed_vector)).capture_mode ==
+             :compressed_vector
+  end
+
+  test "merges count-compatible summaries through partial summaries" do
+    left = TensorSummary.from_list([1, 2], entropy: false)
+    right = TensorSummary.from_list([3, 4], entropy: false)
+
+    assert {:ok, merged} = TensorSummary.merge(left, right)
+    assert merged.count == 4
+    assert merged.finite_count == 4
+    assert merged.min == 1.0
+    assert merged.max == 4.0
+    assert merged.mean == 2.5
+
+    entropy_summary = TensorSummary.from_list([1, 2], entropy: true)
+    assert {:error, {:unmergeable_metric, :entropy}} = TensorSummary.merge(entropy_summary, right)
+  end
+
+  test "operations describe data contracts without tap preconditions" do
+    assert {:ok, %{required_inputs: [:signal_type, :summary_or_vector]}} =
+             Operation.describe(:route_on)
+
+    assert {:ok, [:steering_plan]} = Operation.required_inputs("steer-model")
   end
 
   test "describes adapter capabilities" do

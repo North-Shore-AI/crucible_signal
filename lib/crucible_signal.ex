@@ -20,4 +20,19 @@ defmodule CrucibleSignal do
 
   @doc "Returns all supported capture modes."
   def capture_modes, do: CrucibleSignal.CaptureMode.all()
+
+  defdelegate for_final_logits(attrs \\ []), to: CrucibleSignal.SignalRef
+  defdelegate for_layer_residual(layer_index, attrs \\ []), to: CrucibleSignal.SignalRef
+
+  defdelegate for_attention_map(layer_index, head_index, attrs \\ []),
+    to: CrucibleSignal.SignalRef
+
+  defdelegate for_mlp_gate(layer_index, attrs \\ []), to: CrucibleSignal.SignalRef
+  defdelegate for_norm_telemetry(layer_index, attrs \\ []), to: CrucibleSignal.SignalRef
+  defdelegate for_moe_router(layer_index, attrs \\ []), to: CrucibleSignal.SignalRef
+  defdelegate for_world_model(attrs \\ []), to: CrucibleSignal.SignalRef
+  defdelegate for_verifier(attrs \\ []), to: CrucibleSignal.SignalRef
+  defdelegate for_logit_lens(layer_index, attrs \\ []), to: CrucibleSignal.SignalRef
+  defdelegate for_kv_cache(decode_step, attrs \\ []), to: CrucibleSignal.SignalRef
+  defdelegate for_decoded_text(attrs \\ []), to: CrucibleSignal.SignalRef
 end

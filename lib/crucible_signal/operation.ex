@@ -36,4 +36,26 @@ defmodule CrucibleSignal.Operation do
   end
 
   def normalize(operation), do: {:error, {:unknown_operation, operation}}
+
+  def describe(operation) do
+    with {:ok, operation} <- normalize(operation) do
+      {:ok, %{operation: operation, required_inputs: required_inputs!(operation)}}
+    end
+  end
+
+  def required_inputs(operation) do
+    with {:ok, operation} <- normalize(operation), do: {:ok, required_inputs!(operation)}
+  end
+
+  defp required_inputs!(operation) when operation in [:read, :probe, :uncertainty] do
+    [:signal_type, :shape, :capture_mode]
+  end
+
+  defp required_inputs!(:route_on), do: [:signal_type, :summary_or_vector]
+  defp required_inputs!(:fuse), do: [:logits_or_energy_vector]
+  defp required_inputs!(:gate), do: [:signal_type, :gate_condition]
+  defp required_inputs!(:control_vector), do: [:vector, :target_signal]
+  defp required_inputs!(:shared_memory), do: [:memory_ref, :payload]
+  defp required_inputs!(:verifier_signal), do: [:verifier_signal]
+  defp required_inputs!(:steer_model), do: [:steering_plan]
 end

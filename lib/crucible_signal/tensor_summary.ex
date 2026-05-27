@@ -53,6 +53,29 @@ defmodule CrucibleSignal.TensorSummary do
     build([value], TensorShape.new!([]), infer_dtype([value]), opts)
   end
 
+  def from_nx(tensor, opts \\ []), do: summarize(tensor, opts)
+  def from_list(values, opts \\ []) when is_list(values), do: summarize(values, opts)
+
+  def merge(%__MODULE__{entropy: nil} = left, %__MODULE__{entropy: nil} = right) do
+    with :ok <- compatible_merge?(left, right) do
+      partial =
+        left
+        |> CrucibleSignal.PartialSummary.from_summary()
+        |> CrucibleSignal.PartialSummary.merge(CrucibleSignal.PartialSummary.from_summary(right))
+
+      {:ok, CrucibleSignal.PartialSummary.to_summary(partial)}
+    end
+  end
+
+  def merge(%__MODULE__{}, %__MODULE__{}) do
+    {:error, {:unmergeable_metric, :entropy}}
+  end
+
+  defp compatible_merge?(%__MODULE__{dtype: dtype}, %__MODULE__{dtype: dtype}), do: :ok
+
+  defp compatible_merge?(left, right),
+    do: {:error, {:incompatible_dtype, left.dtype, right.dtype}}
+
   defp build(values, shape, dtype, opts) do
     top_k_count = Keyword.get(opts, :top_k, 5)
     checksum? = Keyword.get(opts, :checksum, true)

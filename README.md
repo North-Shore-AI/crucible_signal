@@ -14,7 +14,8 @@
 # CrucibleSignal
 
 Canonical Elixir signal ontology for transformer forward-pass artifacts, tensor
-summaries, capabilities, and internal-control surfaces.
+summaries, capabilities, and internal-control surfaces. The package is
+model-agnostic; model-specific capture belongs in adapter packages.
 
 ## Stack Position
 
@@ -49,12 +50,32 @@ ref =
     trace_id: "trace-1",
     signal_id: "final-logits:0",
     signal_type: :final_logits,
-    model_ref: "qwen3:local",
+    model_ref: "model:local",
     dtype: :f32,
     shape: {1, 151_936}
   )
 
 summary = TensorSummary.summarize([0.1, 0.4, 0.2], entropy: true)
 ```
+
+## Guides
+
+- [Quickstart](guides/quickstart.md)
+- [Concepts](guides/concepts.md)
+- [Signal Types](guides/signal_types.md)
+- [Tensor Summaries](guides/tensor_summaries.md)
+- [Capabilities And Operations](guides/capabilities_and_operations.md)
+- [Working Examples](guides/working_examples.md)
+- [Testing](guides/testing.md)
+
+## Examples
+
+- `examples/signal_factory_mock.exs`
+- `examples/tensor_summary_live.exs`
+
+## Testing
+
+- Default suite: `mix test`
+- Full local gate: `mix ci`
 
 Documentation can be generated with `mix docs` and published to HexDocs.
