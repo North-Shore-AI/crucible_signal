@@ -1,0 +1,44 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="200" height="200" viewBox="0 0 200 200" role="img" aria-labelledby="title desc">
+  <title id="title">crucible_signal logo</title>
+  <desc id="desc">A midnight hexagonal blueprint with teal signal lattice lines.</desc>
+  <defs>
+    <linearGradient id="hex" x1="28" y1="24" x2="172" y2="176" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#10243a"/>
+      <stop offset="0.52" stop-color="#06202c"/>
+      <stop offset="1" stop-color="#031018"/>
+    </linearGradient>
+    <radialGradient id="pulse" cx="50%" cy="44%" r="54%">
+      <stop offset="0" stop-color="#41f2d0" stop-opacity="0.45"/>
+      <stop offset="1" stop-color="#41f2d0" stop-opacity="0"/>
+    </radialGradient>
+    <pattern id="grid" width="12" height="12" patternUnits="userSpaceOnUse">
+      <path d="M 12 0 L 0 0 0 12" fill="none" stroke="#7ce7ff" stroke-opacity="0.14" stroke-width="0.8"/>
+    </pattern>
+    <filter id="glow" x="-40%" y="-40%" width="180%" height="180%">
+      <feGaussianBlur stdDeviation="2.2" result="blur"/>
+      <feMerge>
+        <feMergeNode in="blur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+    <clipPath id="clip">
+      <polygon points="100,12 176,56 176,144 100,188 24,144 24,56"/>
+    </clipPath>
+  </defs>
+  <g clip-path="url(#clip)">
+    <polygon points="100,12 176,56 176,144 100,188 24,144 24,56" fill="url(#hex)"/>
+    <rect width="200" height="200" fill="url(#grid)"/>
+    <circle cx="100" cy="96" r="84" fill="url(#pulse)"/>
+    <path d="M40 134 C58 118 67 90 86 92 C102 94 101 122 118 124 C137 126 145 83 162 70" fill="none" stroke="#52f4d7" stroke-width="4" stroke-linecap="round" filter="url(#glow)"/>
+    <path d="M39 72 H62 L73 92 L88 54 L103 132 L116 86 L128 105 H160" fill="none" stroke="#eefcff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+    <g fill="#eaffff" stroke="#42f1d2" stroke-width="2">
+      <circle cx="40" cy="134" r="4"/>
+      <circle cx="86" cy="92" r="5"/>
+      <circle cx="118" cy="124" r="5"/>
+      <circle cx="162" cy="70" r="4"/>
+      <circle cx="103" cy="132" r="4"/>
+    </g>
+    <path d="M52 154 L148 154 M68 44 L132 44" stroke="#8defff" stroke-opacity="0.32" stroke-width="1.5"/>
+  </g>
+  <polygon points="100,12 176,56 176,144 100,188 24,144 24,56" fill="none" stroke="#9ff8ea" stroke-width="3"/>
+</svg>
