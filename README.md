@@ -39,4 +39,22 @@ artifacts, MLP gates, cache metadata, logits, decoded text, and related
 operation capabilities. Adapter-specific capture belongs in `crucible_tap` and
 `crucible_bumblebee`.
 
+## Usage
+
+```elixir
+alias CrucibleSignal.{SignalRef, TensorSummary}
+
+ref =
+  SignalRef.new!(
+    trace_id: "trace-1",
+    signal_id: "final-logits:0",
+    signal_type: :final_logits,
+    model_ref: "qwen3:local",
+    dtype: :f32,
+    shape: {1, 151_936}
+  )
+
+summary = TensorSummary.summarize([0.1, 0.4, 0.2], entropy: true)
+```
+
 Documentation can be generated with `mix docs` and published to HexDocs.

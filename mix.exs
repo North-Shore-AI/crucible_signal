@@ -39,6 +39,8 @@ defmodule CrucibleSignal.MixProject do
 
   defp deps do
     [
+      {:jason, "~> 1.4"},
+      {:nx, "~> 0.12"},
       {:ex_doc, "~> 0.40.1", only: [:dev, :test], runtime: false}
     ]
   end

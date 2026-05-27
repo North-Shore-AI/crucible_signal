@@ -11,4 +11,13 @@ defmodule CrucibleSignal do
 
   @doc "Returns the package version."
   def version, do: @version
+
+  @doc "Returns all canonical signal types."
+  def signal_types, do: CrucibleSignal.SignalType.all()
+
+  @doc "Returns all canonical operation types."
+  def operations, do: CrucibleSignal.Operation.all()
+
+  @doc "Returns all supported capture modes."
+  def capture_modes, do: CrucibleSignal.CaptureMode.all()
 end
