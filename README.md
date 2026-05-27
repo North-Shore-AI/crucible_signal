@@ -79,3 +79,13 @@ summary = TensorSummary.summarize([0.1, 0.4, 0.2], entropy: true)
 - Full local gate: `mix ci`
 
 Documentation can be generated with `mix docs` and published to HexDocs.
+
+## V4 Status
+
+Status: `schema-compatible`.
+
+V4 adds provider-neutral `Crucible.*` DTOs alongside the existing package
+namespace: `Crucible.TensorSummary`, `Crucible.TensorRef`,
+`Crucible.ArtifactRef`, `Crucible.Signal.Metadata`, and
+`Crucible.SignalRecord`. `CrucibleSignal.v4_signal_types/0` exposes the v4
+event/signal vocabulary used by native Bumblebee traces and offline replay.

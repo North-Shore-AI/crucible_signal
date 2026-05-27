@@ -15,6 +15,37 @@ defmodule CrucibleSignal do
   @doc "Returns all canonical signal types."
   def signal_types, do: CrucibleSignal.SignalType.all()
 
+  @doc "Returns the V4 provider-neutral signal classes."
+  def v4_signal_types do
+    [
+      :input_ids,
+      :attention_mask,
+      :token_embeddings,
+      :hidden_state,
+      :residual_stream,
+      :attention_scores,
+      :attention_weights,
+      :mlp_activation,
+      :router_logits,
+      :moe_expert_weights,
+      :kv_cache_metadata,
+      :final_logits,
+      :intermediate_logits,
+      :logit_lens_projection,
+      :generation_token,
+      :generation_step_logits,
+      :decode_entropy,
+      :decode_margin,
+      :spilled_energy,
+      :energy_delta,
+      :jsd_drift,
+      :cosine_drift,
+      :correction_candidate,
+      :backend_event,
+      :model_capability
+    ]
+  end
+
   @doc "Returns all canonical operation types."
   def operations, do: CrucibleSignal.Operation.all()
 

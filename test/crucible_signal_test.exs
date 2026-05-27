@@ -19,7 +19,62 @@ defmodule CrucibleSignalTest do
   end
 
   test "covers the full forward-pass signal matrix" do
-    assert CrucibleSignal.signal_types() == [
+    assert CrucibleSignal.v4_signal_types() == [
+             :input_ids,
+             :attention_mask,
+             :token_embeddings,
+             :hidden_state,
+             :residual_stream,
+             :attention_scores,
+             :attention_weights,
+             :mlp_activation,
+             :router_logits,
+             :moe_expert_weights,
+             :kv_cache_metadata,
+             :final_logits,
+             :intermediate_logits,
+             :logit_lens_projection,
+             :generation_token,
+             :generation_step_logits,
+             :decode_entropy,
+             :decode_margin,
+             :spilled_energy,
+             :energy_delta,
+             :jsd_drift,
+             :cosine_drift,
+             :correction_candidate,
+             :backend_event,
+             :model_capability
+           ]
+
+    assert [
+             :input_ids,
+             :attention_mask,
+             :token_embeddings,
+             :hidden_state,
+             :residual_stream,
+             :attention_scores,
+             :attention_weights,
+             :mlp_activation,
+             :router_logits,
+             :moe_expert_weights,
+             :kv_cache_metadata,
+             :logit_lens_projection,
+             :generation_token,
+             :generation_step_logits,
+             :decode_entropy,
+             :decode_margin,
+             :spilled_energy,
+             :energy_delta,
+             :jsd_drift,
+             :cosine_drift,
+             :correction_candidate,
+             :backend_event,
+             :model_capability
+             | _
+           ] = CrucibleSignal.signal_types()
+
+    assert Enum.drop(CrucibleSignal.signal_types(), 23) == [
              :embeddings,
              :early_residuals,
              :attention_q,
@@ -44,6 +99,7 @@ defmodule CrucibleSignalTest do
            ]
 
     assert {:ok, :attention_q} = SignalType.normalize("attention-q")
+    assert {:ok, :input_ids} = SignalType.normalize("input_ids")
   end
 
   test "covers the operation matrix" do
@@ -189,5 +245,36 @@ defmodule CrucibleSignalTest do
     assert Capability.supports?(capability, :probe)
     assert Capability.supports_capture?(capability, "sample")
     refute Capability.supports?(capability, :fuse)
+  end
+
+  test "builds V4 canonical tensor summaries and signal records" do
+    summary = Crucible.TensorSummary.compute([1.0, 2.0, 3.0], entropy: true, top_k: 2)
+
+    assert summary.shape == [3]
+    assert summary.rank == 1
+    assert summary.dtype == :f64
+    assert summary.norm_l2 > 3.7
+    assert [%{token_id: 2, logit: 3.0}, %{token_id: 1, logit: 2.0}] = summary.top_k
+    assert String.starts_with?(summary.digest, "sha256:")
+
+    record = %Crucible.SignalRecord{
+      signal_id: "sig-1",
+      trace_id: "trace-1",
+      run_id: "run-1",
+      signal_type: :final_logits,
+      provider_kind: :elixir_bumblebee,
+      model_id: "hf-internal-testing/tiny-random-gpt2",
+      model_family: :gpt2,
+      backend: :exla_cpu,
+      capture_method: :axon_hook,
+      tensor_summary: summary
+    }
+
+    assert Jason.decode!(Jason.encode!(record))["schema_version"] == nil
+
+    assert String.starts_with?(
+             Crucible.CanonicalJSON.digest(%{b: 2, a: 1}),
+             "sha256:"
+           )
   end
 end
