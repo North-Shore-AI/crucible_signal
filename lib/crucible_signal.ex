@@ -52,6 +52,9 @@ defmodule CrucibleSignal do
   @doc "Returns all supported capture modes."
   def capture_modes, do: CrucibleSignal.CaptureMode.all()
 
+  @doc "Returns all V5 capability/capture statuses."
+  def capability_statuses, do: CrucibleSignal.CapabilityStatus.all()
+
   defdelegate for_final_logits(attrs \\ []), to: CrucibleSignal.SignalRef
   defdelegate for_layer_residual(layer_index, attrs \\ []), to: CrucibleSignal.SignalRef
 

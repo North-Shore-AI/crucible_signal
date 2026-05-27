@@ -10,6 +10,7 @@ defmodule CrucibleSignalTest do
     SignalRef,
     SignalSpec,
     SignalType,
+    CapabilityStatus,
     TensorShape,
     TensorSummary
   }
@@ -245,6 +246,10 @@ defmodule CrucibleSignalTest do
     assert Capability.supports?(capability, :probe)
     assert Capability.supports_capture?(capability, "sample")
     refute Capability.supports?(capability, :fuse)
+
+    assert capability.status == :captured
+    assert {:ok, :blocked_by_axon_graph} = CapabilityStatus.normalize("blocked-by-axon-graph")
+    assert CapabilityStatus.class(:blocked_by_axon_graph) == :blocked
   end
 
   test "builds V4 canonical tensor summaries and signal records" do
@@ -276,5 +281,46 @@ defmodule CrucibleSignalTest do
              Crucible.CanonicalJSON.digest(%{b: 2, a: 1}),
              "sha256:"
            )
+  end
+
+  test "round-trips V5 provenance for real-output final logits summaries" do
+    # Fixture shape mirrors a captured final-token logits vector without storing raw model tensors.
+    tiny_gpt2_logits = [0.03125, -0.125, 0.5, 0.09375, -0.25, 0.1875]
+    summary = Crucible.TensorSummary.compute(tiny_gpt2_logits, entropy: true, top_k: 3)
+
+    record = %Crucible.SignalRecord{
+      signal_id: "sig-final-logits",
+      trace_id: "trace-real-tiny-gpt2",
+      run_id: "run-real-tiny-gpt2",
+      signal_type: :final_logits,
+      provider_kind: :elixir_bumblebee,
+      model_id: "hf-internal-testing/tiny-random-gpt2",
+      model_family: :gpt2,
+      model_revision: "main",
+      backend: :binary,
+      dtype: :f32,
+      shape: [1, 1, 6],
+      rank: 3,
+      layer_index: :final,
+      token_index: -1,
+      node_name: "final_logits",
+      capture_method: :axon_predict_output,
+      surface_id: "tiny-gpt2-surface",
+      tap_id: "final_logits",
+      capability_status: :captured,
+      tensor_summary: summary,
+      metadata: %{source: "v5-real-output-fixture"}
+    }
+
+    decoded = record |> Jason.encode!() |> Jason.decode!()
+
+    assert decoded["model_id"] == "hf-internal-testing/tiny-random-gpt2"
+    assert decoded["backend"] == "binary"
+    assert decoded["dtype"] == "f32"
+    assert decoded["shape"] == [1, 1, 6]
+    assert decoded["layer_index"] == "final"
+    assert decoded["token_index"] == -1
+    assert decoded["capture_method"] == "axon_predict_output"
+    assert get_in(decoded, ["tensor_summary", "top_k"]) |> length() == 3
   end
 end

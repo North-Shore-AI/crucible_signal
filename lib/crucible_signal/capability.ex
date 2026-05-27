@@ -3,7 +3,7 @@ defmodule CrucibleSignal.Capability do
   Adapter capability facts for a signal type.
   """
 
-  alias CrucibleSignal.{CaptureMode, Operation, SignalType}
+  alias CrucibleSignal.{CapabilityStatus, CaptureMode, Operation, SignalType}
 
   @derive Jason.Encoder
   defstruct signal_type: nil,
@@ -11,6 +11,8 @@ defmodule CrucibleSignal.Capability do
             capture_modes: [:summary],
             adapter: nil,
             model_family: nil,
+            status: :captured,
+            reason: nil,
             metadata: %{}
 
   @type t :: %__MODULE__{}
@@ -22,7 +24,8 @@ defmodule CrucibleSignal.Capability do
          {:ok, signal_type} <- SignalType.normalize(raw_signal_type),
          {:ok, operations} <- normalize_many(Map.get(attrs, :operations, [:read]), Operation),
          {:ok, capture_modes} <-
-           normalize_many(Map.get(attrs, :capture_modes, [:summary]), CaptureMode) do
+           normalize_many(Map.get(attrs, :capture_modes, [:summary]), CaptureMode),
+         {:ok, status} <- CapabilityStatus.normalize(Map.get(attrs, :status, :captured)) do
       {:ok,
        struct(__MODULE__, %{
          signal_type: signal_type,
@@ -30,6 +33,8 @@ defmodule CrucibleSignal.Capability do
          capture_modes: capture_modes,
          adapter: Map.get(attrs, :adapter),
          model_family: Map.get(attrs, :model_family),
+         status: status,
+         reason: Map.get(attrs, :reason),
          metadata: Map.get(attrs, :metadata, %{})
        })}
     end
