@@ -252,7 +252,7 @@ defmodule CrucibleSignalTest do
     assert CapabilityStatus.class(:blocked_by_axon_graph) == :blocked
   end
 
-  test "builds V4 canonical tensor summaries and signal records" do
+  test "builds canonical tensor summaries and signal records" do
     summary = Crucible.TensorSummary.compute([1.0, 2.0, 3.0], entropy: true, top_k: 2)
 
     assert summary.shape == [3]
@@ -262,20 +262,27 @@ defmodule CrucibleSignalTest do
     assert [%{token_id: 2, logit: 3.0}, %{token_id: 1, logit: 2.0}] = summary.top_k
     assert String.starts_with?(summary.digest, "sha256:")
 
-    record = %Crucible.SignalRecord{
-      signal_id: "sig-1",
-      trace_id: "trace-1",
-      run_id: "run-1",
-      signal_type: :final_logits,
-      provider_kind: :elixir_bumblebee,
-      model_id: "hf-internal-testing/tiny-random-gpt2",
-      model_family: :gpt2,
-      backend: :exla_cpu,
-      capture_method: :axon_hook,
-      tensor_summary: summary
-    }
+    record =
+      Crucible.SignalRecord.new!(
+        signal_id: "sig-1",
+        trace_id: "trace-1",
+        run_id: "run-1",
+        signal_type: :final_logits,
+        provider_kind: :elixir_bumblebee,
+        model_id: "hf-internal-testing/tiny-random-gpt2",
+        model_family: :gpt2,
+        backend: :exla_cpu,
+        capture_method: :axon_hook,
+        tensor_summary: summary
+      )
 
     assert Jason.decode!(Jason.encode!(record))["schema_version"] == nil
+
+    removed_conversion =
+      <<102, 114, 111, 109, 95, 108, 101, 103, 97, 99, 121>> |> String.to_atom()
+
+    refute function_exported?(Crucible.TensorSummary, removed_conversion, 1)
+    refute function_exported?(Crucible.SignalRecord, removed_conversion, 1)
 
     assert String.starts_with?(
              Crucible.CanonicalJSON.digest(%{b: 2, a: 1}),
@@ -288,29 +295,30 @@ defmodule CrucibleSignalTest do
     tiny_gpt2_logits = [0.03125, -0.125, 0.5, 0.09375, -0.25, 0.1875]
     summary = Crucible.TensorSummary.compute(tiny_gpt2_logits, entropy: true, top_k: 3)
 
-    record = %Crucible.SignalRecord{
-      signal_id: "sig-final-logits",
-      trace_id: "trace-real-tiny-gpt2",
-      run_id: "run-real-tiny-gpt2",
-      signal_type: :final_logits,
-      provider_kind: :elixir_bumblebee,
-      model_id: "hf-internal-testing/tiny-random-gpt2",
-      model_family: :gpt2,
-      model_revision: "main",
-      backend: :binary,
-      dtype: :f32,
-      shape: [1, 1, 6],
-      rank: 3,
-      layer_index: :final,
-      token_index: -1,
-      node_name: "final_logits",
-      capture_method: :axon_predict_output,
-      surface_id: "tiny-gpt2-surface",
-      tap_id: "final_logits",
-      capability_status: :captured,
-      tensor_summary: summary,
-      metadata: %{source: "v5-real-output-fixture"}
-    }
+    record =
+      Crucible.SignalRecord.new!(
+        signal_id: "sig-final-logits",
+        trace_id: "trace-real-tiny-gpt2",
+        run_id: "run-real-tiny-gpt2",
+        signal_type: :final_logits,
+        provider_kind: :elixir_bumblebee,
+        model_id: "hf-internal-testing/tiny-random-gpt2",
+        model_family: :gpt2,
+        model_revision: "main",
+        backend: :binary,
+        dtype: :f32,
+        shape: [1, 1, 6],
+        rank: 3,
+        layer_index: :final,
+        token_index: -1,
+        node_name: "final_logits",
+        capture_method: :axon_predict_output,
+        surface_id: "tiny-gpt2-surface",
+        tap_id: "final_logits",
+        capability_status: :captured,
+        tensor_summary: summary,
+        metadata: %{source: "v5-real-output-fixture"}
+      )
 
     decoded = record |> Jason.encode!() |> Jason.decode!()
 

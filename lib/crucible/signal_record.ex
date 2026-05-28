@@ -35,50 +35,44 @@ defmodule Crucible.SignalRecord do
 
   @type t :: %__MODULE__{}
 
-  def from_legacy(%{signal_ref: ref} = record) do
-    %__MODULE__{
-      signal_id: ref.signal_id,
-      trace_id: ref.trace_id,
-      run_id: Map.get(ref.metadata, :run_id),
-      signal_type: ref.signal_type,
-      provider_kind: Map.get(ref.metadata, :provider_kind),
-      model_id: ref.model_ref,
-      model_family: Map.get(ref.metadata, :model_family),
-      model_revision: Map.get(ref.metadata, :model_revision),
-      backend: Map.get(ref.metadata, :backend),
-      dtype: ref.dtype,
-      shape: shape_dims(ref.shape),
-      rank: shape_rank(ref.shape),
-      device: Map.get(ref.metadata, :device),
-      layer_index: ref.layer_index,
-      token_index: ref.token_index,
-      node_name: Map.get(ref.metadata, :node_name),
-      capture_method: Map.get(ref.metadata, :capture_method),
-      surface_id: Map.get(ref.metadata, :surface_id),
-      tap_id: Map.get(ref.metadata, :tap_id),
-      capability_status: Map.get(ref.metadata, :capability_status),
-      capability_reason: Map.get(ref.metadata, :capability_reason),
-      tensor_summary: normalize_summary(Map.get(record, :summary)),
-      tensor_ref: normalize_tensor_ref(Map.get(record, :value_ref)),
-      metadata: Map.get(record, :metadata, %{})
-    }
+  @spec new(map() | keyword()) :: {:ok, t()} | {:error, term()}
+  def new(attrs) when is_list(attrs), do: attrs |> Map.new() |> new()
+
+  def new(attrs) when is_map(attrs) do
+    with {:ok, tensor_summary} <- canonical_tensor_summary(Map.get(attrs, :tensor_summary)),
+         {:ok, tensor_ref} <- canonical_tensor_ref(Map.get(attrs, :tensor_ref)),
+         {:ok, metadata} <- canonical_metadata(Map.get(attrs, :metadata, %{})) do
+      record =
+        attrs
+        |> Map.put(:tensor_summary, tensor_summary)
+        |> Map.put(:tensor_ref, tensor_ref)
+        |> Map.put(:metadata, metadata)
+
+      {:ok, struct(__MODULE__, record)}
+    end
   end
 
-  defp normalize_summary(%TensorSummary{} = summary), do: summary
+  @spec new!(map() | keyword()) :: t()
+  def new!(attrs) do
+    case new(attrs) do
+      {:ok, record} -> record
+      {:error, reason} -> raise ArgumentError, "invalid signal record: #{inspect(reason)}"
+    end
+  end
 
-  defp normalize_summary(%CrucibleSignal.TensorSummary{} = summary),
-    do: TensorSummary.from_legacy(summary)
+  defp canonical_tensor_summary(nil), do: {:ok, nil}
+  defp canonical_tensor_summary(%TensorSummary{} = summary), do: {:ok, summary}
 
-  defp normalize_summary(nil), do: nil
-  defp normalize_summary(summary) when is_map(summary), do: struct(TensorSummary, summary)
+  defp canonical_tensor_summary(summary) when is_map(summary),
+    do: {:ok, struct(TensorSummary, summary)}
 
-  defp normalize_tensor_ref(%TensorRef{} = ref), do: ref
-  defp normalize_tensor_ref(nil), do: nil
-  defp normalize_tensor_ref(ref) when is_map(ref), do: struct(TensorRef, ref)
+  defp canonical_tensor_summary(_summary), do: {:error, :invalid_tensor_summary}
 
-  defp shape_dims(%CrucibleSignal.TensorShape{dims: dims}), do: dims
-  defp shape_dims(_shape), do: nil
+  defp canonical_tensor_ref(nil), do: {:ok, nil}
+  defp canonical_tensor_ref(%TensorRef{} = ref), do: {:ok, ref}
+  defp canonical_tensor_ref(ref) when is_map(ref), do: {:ok, struct(TensorRef, ref)}
+  defp canonical_tensor_ref(_ref), do: {:error, :invalid_tensor_ref}
 
-  defp shape_rank(%CrucibleSignal.TensorShape{rank: rank}), do: rank
-  defp shape_rank(_shape), do: nil
+  defp canonical_metadata(metadata) when is_map(metadata), do: {:ok, metadata}
+  defp canonical_metadata(_metadata), do: {:error, :invalid_metadata}
 end

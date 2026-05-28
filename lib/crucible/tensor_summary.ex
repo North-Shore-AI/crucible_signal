@@ -39,22 +39,6 @@ defmodule Crucible.TensorSummary do
   def compute(value, opts) when is_number(value),
     do: build([value], [], infer_dtype([value]), opts)
 
-  def from_legacy(%CrucibleSignal.TensorSummary{} = summary) do
-    %__MODULE__{
-      shape: legacy_shape(summary.shape),
-      rank: legacy_rank(summary.shape),
-      dtype: summary.dtype,
-      min: summary.min,
-      max: summary.max,
-      mean: summary.mean,
-      stddev: summary.stddev,
-      norm_l2: summary.l2_norm,
-      entropy: summary.entropy,
-      top_k: legacy_top_k(summary.top_k),
-      digest: maybe_prefix_digest(summary.checksum)
-    }
-  end
-
   defp build(values, shape, dtype, opts) do
     finite = finite_values(values)
     probabilities = probabilities(finite)
@@ -170,24 +154,4 @@ defmodule Crucible.TensorSummary do
   defp infer_dtype(values) when is_list(values) do
     if Enum.all?(values, &is_integer/1), do: :s64, else: :f64
   end
-
-  defp legacy_shape(%CrucibleSignal.TensorShape{dims: dims}), do: dims
-  defp legacy_shape(dims) when is_list(dims), do: dims
-  defp legacy_shape(_shape), do: []
-
-  defp legacy_rank(%CrucibleSignal.TensorShape{rank: rank}), do: rank
-  defp legacy_rank(dims) when is_list(dims), do: length(dims)
-  defp legacy_rank(_shape), do: 0
-
-  defp legacy_top_k(values) when is_list(values) do
-    values
-    |> Enum.with_index()
-    |> Enum.map(fn {logit, index} -> %{token_id: index, logit: logit, probability: nil} end)
-  end
-
-  defp legacy_top_k(_values), do: nil
-
-  defp maybe_prefix_digest(nil), do: nil
-  defp maybe_prefix_digest("sha256:" <> _rest = digest), do: digest
-  defp maybe_prefix_digest(digest), do: "sha256:" <> digest
 end
