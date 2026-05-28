@@ -80,12 +80,16 @@ summary = TensorSummary.summarize([0.1, 0.4, 0.2], entropy: true)
 
 Documentation can be generated with `mix docs` and published to HexDocs.
 
-## V4 Status
+## V5 Status
 
-Status: `schema-compatible`.
+Status: `signal-ontology-real-output-passing`.
 
-V4 adds provider-neutral `Crucible.*` DTOs alongside the existing package
-namespace: `Crucible.TensorSummary`, `Crucible.TensorRef`,
-`Crucible.ArtifactRef`, `Crucible.Signal.Metadata`, and
-`Crucible.SignalRecord`. `CrucibleSignal.v4_signal_types/0` exposes the v4
-event/signal vocabulary used by native Bumblebee traces and offline replay.
+V5 keeps the provider-neutral `Crucible.*` DTOs and expands the signal
+vocabulary used by native Bumblebee and Python/PyTorch traces: input IDs,
+attention masks, final logits, generation-step logits, hidden states, attention
+weights, residual/MLP summaries, router/MoE probes, KV-cache metadata, backend
+events, and capability records.
+
+The V5 gate round-trips real model output summaries through JSON without raw
+tensor arrays. Phase artifacts are recorded in the V5 checklist, including
+`tmp/crucible_v5/transcripts/crucible_signal_mix_ci.log`.
