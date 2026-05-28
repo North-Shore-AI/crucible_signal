@@ -14,6 +14,9 @@ defmodule Crucible.TensorSummary do
             mean: nil,
             stddev: nil,
             norm_l2: nil,
+            nan_count: 0,
+            positive_infinity_count: 0,
+            negative_infinity_count: 0,
             entropy: nil,
             top_k: nil,
             digest: nil
@@ -40,6 +43,7 @@ defmodule Crucible.TensorSummary do
     do: build([value], [], infer_dtype([value]), opts)
 
   defp build(values, shape, dtype, opts) do
+    classes = Enum.map(values, &classify/1)
     finite = finite_values(values)
     probabilities = probabilities(finite)
 
@@ -52,6 +56,9 @@ defmodule Crucible.TensorSummary do
       mean: mean(finite),
       stddev: stddev(finite),
       norm_l2: norm_l2(finite),
+      nan_count: Enum.count(classes, &(&1 == :nan)),
+      positive_infinity_count: Enum.count(classes, &(&1 == :positive_infinity)),
+      negative_infinity_count: Enum.count(classes, &(&1 == :negative_infinity)),
       entropy: if(Keyword.get(opts, :entropy, false), do: entropy(probabilities)),
       top_k: top_k(finite, probabilities, Keyword.get(opts, :top_k, 10)),
       digest: digest(shape, dtype, values)
@@ -64,6 +71,21 @@ defmodule Crucible.TensorSummary do
     |> Enum.reject(&nan_or_inf?/1)
     |> Enum.map(&(&1 * 1.0))
   end
+
+  defp classify(value) when is_integer(value), do: :finite
+
+  defp classify(value) when is_float(value) do
+    text = value |> Float.to_string() |> String.downcase()
+
+    cond do
+      text in ["nan"] -> :nan
+      text in ["inf", "+inf", "infinity", "+infinity"] -> :positive_infinity
+      text in ["-inf", "-infinity"] -> :negative_infinity
+      true -> :finite
+    end
+  end
+
+  defp classify(_value), do: :ignored
 
   defp nan_or_inf?(value) when is_integer(value), do: false
 
