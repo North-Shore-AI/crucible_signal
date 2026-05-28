@@ -1,6 +1,6 @@
 defmodule Crucible.TensorSummary do
   @moduledoc """
-  V4 canonical bounded tensor summary.
+  V4/V5 canonical bounded tensor summary.
   """
 
   alias CrucibleSignal.DType

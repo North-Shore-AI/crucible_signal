@@ -1,6 +1,6 @@
 defmodule Crucible.CanonicalJSON do
   @moduledoc """
-  Deterministic JSON encoding used for V4 digest inputs.
+  Deterministic JSON encoding used for V4/V5 digest inputs.
   """
 
   def encode!(value) do

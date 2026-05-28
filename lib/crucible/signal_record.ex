@@ -1,6 +1,6 @@
 defmodule Crucible.SignalRecord do
   @moduledoc """
-  V4 canonical extracted signal record.
+  V4/V5 canonical extracted signal record.
   """
 
   alias Crucible.{TensorRef, TensorSummary}

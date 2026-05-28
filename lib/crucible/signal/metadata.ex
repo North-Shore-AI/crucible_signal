@@ -1,6 +1,6 @@
 defmodule Crucible.Signal.Metadata do
   @moduledoc """
-  V4 canonical signal provenance metadata.
+  V4/V5 canonical signal provenance metadata.
   """
 
   @derive Jason.Encoder

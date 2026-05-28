@@ -15,7 +15,7 @@ defmodule CrucibleSignal do
   @doc "Returns all canonical signal types."
   def signal_types, do: CrucibleSignal.SignalType.all()
 
-  @doc "Returns the V4 provider-neutral signal classes."
+  @doc "Returns the V4/V5 provider-neutral signal classes."
   def v4_signal_types do
     [
       :input_ids,

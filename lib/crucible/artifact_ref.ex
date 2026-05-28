@@ -1,6 +1,6 @@
 defmodule Crucible.ArtifactRef do
   @moduledoc """
-  V4 pointer to a non-tensor trace artifact.
+  V4/V5 pointer to a non-tensor trace artifact.
   """
 
   @derive Jason.Encoder

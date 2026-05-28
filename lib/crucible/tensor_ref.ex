@@ -1,6 +1,6 @@
 defmodule Crucible.TensorRef do
   @moduledoc """
-  V4 pointer to externally stored raw tensor bytes.
+  V4/V5 pointer to externally stored raw tensor bytes.
   """
 
   @derive Jason.Encoder
