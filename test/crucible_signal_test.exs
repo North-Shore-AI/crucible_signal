@@ -118,7 +118,23 @@ defmodule CrucibleSignalTest do
            ]
 
     assert {:ok, :route_on} = Operation.normalize("route-on")
-    assert CaptureMode.all() == [:summary, :sample, :compressed_vector, :raw, :external_ref]
+
+    assert CaptureMode.all() == [
+             :summary,
+             :top_k,
+             :sample,
+             :compressed_vector,
+             :raw,
+             :metadata_only,
+             :event,
+             :external_ref
+           ]
+
+    assert {:ok, :top_k} = CaptureMode.normalize("top_k")
+    assert {:ok, :metadata_only} = CaptureMode.normalize(:metadata_only)
+    assert {:ok, :event} = CaptureMode.normalize("event")
+
+    assert {:error, {:unknown_capture_mode, :bogus}} = CaptureMode.normalize(:bogus)
   end
 
   test "builds validated signal refs" do

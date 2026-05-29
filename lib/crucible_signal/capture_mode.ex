@@ -3,9 +3,26 @@ defmodule CrucibleSignal.CaptureMode do
   Capture posture for a signal value.
   """
 
-  @modes [:summary, :sample, :compressed_vector, :raw, :external_ref]
+  @modes [
+    :summary,
+    :top_k,
+    :sample,
+    :compressed_vector,
+    :raw,
+    :metadata_only,
+    :event,
+    :external_ref
+  ]
 
-  @type t :: :summary | :sample | :compressed_vector | :raw | :external_ref
+  @type t ::
+          :summary
+          | :top_k
+          | :sample
+          | :compressed_vector
+          | :raw
+          | :metadata_only
+          | :event
+          | :external_ref
 
   def all, do: @modes
 
