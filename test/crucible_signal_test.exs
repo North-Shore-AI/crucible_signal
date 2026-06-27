@@ -93,6 +93,9 @@ defmodule CrucibleSignalTest do
              :world_model_state,
              :verifier_signal,
              :logit_lens_intermediate,
+             :sae_feature_activation,
+             :sae_reconstruction,
+             :sae_reconstruction_error,
              :late_residuals,
              :intermediate_logits,
              :final_logits,
@@ -100,6 +103,7 @@ defmodule CrucibleSignalTest do
            ]
 
     assert {:ok, :attention_q} = SignalType.normalize("attention-q")
+    assert {:ok, :sae_feature_activation} = SignalType.normalize("sae-feature-activation")
     assert {:ok, :input_ids} = SignalType.normalize("input_ids")
   end
 

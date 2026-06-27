@@ -76,6 +76,9 @@ defmodule CrucibleSignal do
   defdelegate for_verifier(attrs \\ []), to: CrucibleSignal.SignalRef
   defdelegate for_logit_lens(layer_index, attrs \\ []), to: CrucibleSignal.SignalRef
   defdelegate for_kv_cache(decode_step, attrs \\ []), to: CrucibleSignal.SignalRef
+  defdelegate for_sae_feature(attrs \\ []), to: CrucibleSignal.SignalRef
+  defdelegate for_sae_reconstruction(attrs \\ []), to: CrucibleSignal.SignalRef
+  defdelegate for_sae_reconstruction_error(attrs \\ []), to: CrucibleSignal.SignalRef
   defdelegate for_decoded_text(attrs \\ []), to: CrucibleSignal.SignalRef
   defdelegate for_activation(activation_name, attrs \\ []), to: CrucibleSignal.SignalRef
 end

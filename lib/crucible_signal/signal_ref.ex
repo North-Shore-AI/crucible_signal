@@ -117,6 +117,10 @@ defmodule CrucibleSignal.SignalRef do
     typed_ref(:kv_cache_state, Keyword.put(normalize_keyword(attrs), :decode_step, decode_step))
   end
 
+  def for_sae_feature(attrs \\ []), do: typed_ref(:sae_feature_activation, attrs)
+  def for_sae_reconstruction(attrs \\ []), do: typed_ref(:sae_reconstruction, attrs)
+  def for_sae_reconstruction_error(attrs \\ []), do: typed_ref(:sae_reconstruction_error, attrs)
+
   def for_decoded_text(attrs \\ []), do: typed_ref(:decoded_text, attrs)
 
   def for_activation(activation_name, attrs \\ []) when is_binary(activation_name) do
