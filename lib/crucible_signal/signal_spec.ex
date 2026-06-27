@@ -3,7 +3,7 @@ defmodule CrucibleSignal.SignalSpec do
   Requested signal shape used by tap plans and adapters.
   """
 
-  alias CrucibleSignal.{CaptureMode, Operation, SignalType}
+  alias CrucibleSignal.{CaptureMode, Operation, SafeTerms, SignalType}
 
   @derive Jason.Encoder
   defstruct id: nil,
@@ -49,14 +49,7 @@ defmodule CrucibleSignal.SignalSpec do
     end
   end
 
-  defp normalize_attrs(attrs) when is_list(attrs), do: attrs |> Map.new() |> normalize_attrs()
-
-  defp normalize_attrs(attrs) when is_map(attrs) do
-    Map.new(attrs, fn
-      {key, value} when is_binary(key) -> {String.to_atom(key), value}
-      {key, value} -> {key, value}
-    end)
-  end
+  defp normalize_attrs(attrs), do: SafeTerms.normalize_attrs(attrs)
 
   defp fetch_required(attrs, field) do
     case Map.fetch(attrs, field) do

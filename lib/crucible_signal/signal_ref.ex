@@ -3,7 +3,7 @@ defmodule CrucibleSignal.SignalRef do
   Stable reference to a captured or derived forward-pass signal.
   """
 
-  alias CrucibleSignal.{CaptureMode, DType, Redaction, SignalType, TensorShape}
+  alias CrucibleSignal.{CaptureMode, DType, Redaction, SafeTerms, SignalType, TensorShape}
 
   @derive Jason.Encoder
   defstruct trace_id: nil,
@@ -149,14 +149,7 @@ defmodule CrucibleSignal.SignalRef do
   defp normalize_keyword(attrs) when is_map(attrs), do: Map.to_list(attrs)
   defp normalize_keyword(attrs) when is_list(attrs), do: attrs
 
-  defp normalize_attrs(attrs) when is_list(attrs), do: attrs |> Map.new() |> normalize_attrs()
-
-  defp normalize_attrs(attrs) when is_map(attrs) do
-    Map.new(attrs, fn
-      {key, value} when is_binary(key) -> {String.to_atom(key), value}
-      {key, value} -> {key, value}
-    end)
-  end
+  defp normalize_attrs(attrs), do: SafeTerms.normalize_attrs(attrs)
 
   defp require_fields(attrs, fields) do
     missing = Enum.reject(fields, &present?(attrs, &1))

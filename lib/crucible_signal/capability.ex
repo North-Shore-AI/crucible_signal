@@ -3,7 +3,7 @@ defmodule CrucibleSignal.Capability do
   Adapter capability facts for a signal type.
   """
 
-  alias CrucibleSignal.{CapabilityStatus, CaptureMode, Operation, SignalType}
+  alias CrucibleSignal.{CapabilityStatus, CaptureMode, Operation, SafeTerms, SignalType}
 
   @derive Jason.Encoder
   defstruct signal_type: nil,
@@ -63,14 +63,7 @@ defmodule CrucibleSignal.Capability do
     end
   end
 
-  defp normalize_attrs(attrs) when is_list(attrs), do: attrs |> Map.new() |> normalize_attrs()
-
-  defp normalize_attrs(attrs) when is_map(attrs) do
-    Map.new(attrs, fn
-      {key, value} when is_binary(key) -> {String.to_atom(key), value}
-      {key, value} -> {key, value}
-    end)
-  end
+  defp normalize_attrs(attrs), do: SafeTerms.normalize_attrs(attrs)
 
   defp fetch_required(attrs, field) do
     case Map.fetch(attrs, field) do

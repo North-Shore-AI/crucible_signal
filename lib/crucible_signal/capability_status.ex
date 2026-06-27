@@ -11,13 +11,20 @@ defmodule CrucibleSignal.CapabilityStatus do
     :unsupported_by_backend,
     :unsupported_by_model_family,
     :blocked,
-    :blocked_by_bumblebee_api,
-    :blocked_by_axon_graph,
     :blocked_by_generation_pipeline,
     :failed,
     :failed_with_exception,
     :skipped
   ]
+
+  @external_statuses Map.new(@statuses, fn status ->
+                       {status |> Atom.to_string() |> String.replace("_", "-"), status}
+                     end)
+
+  @legacy_external_statuses %{
+    "blocked-by-bumblebee-api" => :blocked,
+    "blocked-by-axon-graph" => :blocked
+  }
 
   @type t :: unquote(Enum.reduce(@statuses, &{:|, [], [&1, &2]}))
 
@@ -30,18 +37,16 @@ defmodule CrucibleSignal.CapabilityStatus do
   @spec normalize(atom() | String.t()) ::
           {:ok, t()} | {:error, {:unknown_capability_status, term()}}
   def normalize(status) when is_atom(status) do
-    if valid?(status),
-      do: {:ok, status},
-      else: {:error, {:unknown_capability_status, status}}
+    status
+    |> Atom.to_string()
+    |> String.replace("_", "-")
+    |> normalize_external(status)
   end
 
   def normalize(status) when is_binary(status) do
     status
-    |> String.replace("-", "_")
-    |> String.to_existing_atom()
-    |> normalize()
-  rescue
-    ArgumentError -> {:error, {:unknown_capability_status, status}}
+    |> String.replace("_", "-")
+    |> normalize_external(status)
   end
 
   def normalize(status), do: {:error, {:unknown_capability_status, status}}
@@ -64,11 +69,16 @@ defmodule CrucibleSignal.CapabilityStatus do
 
   def class(status)
       when status in [
-             :blocked_by_bumblebee_api,
-             :blocked_by_axon_graph,
              :blocked_by_generation_pipeline
            ],
       do: :blocked
 
   def class(:failed_with_exception), do: :failed
+
+  defp normalize_external(key, original) do
+    case Map.fetch(Map.merge(@legacy_external_statuses, @external_statuses), key) do
+      {:ok, status} -> {:ok, status}
+      :error -> {:error, {:unknown_capability_status, original}}
+    end
+  end
 end

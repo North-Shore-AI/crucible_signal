@@ -264,8 +264,45 @@ defmodule CrucibleSignalTest do
     refute Capability.supports?(capability, :fuse)
 
     assert capability.status == :captured
-    assert {:ok, :blocked_by_axon_graph} = CapabilityStatus.normalize("blocked-by-axon-graph")
-    assert CapabilityStatus.class(:blocked_by_axon_graph) == :blocked
+    refute :blocked_by_axon_graph in CapabilityStatus.all()
+    refute CapabilityStatus.valid?(:blocked_by_bumblebee_api)
+    assert {:ok, :blocked} = CapabilityStatus.normalize("blocked-by-axon-graph")
+    assert {:ok, :blocked} = CapabilityStatus.normalize(:blocked_by_bumblebee_api)
+    assert CapabilityStatus.class(:blocked) == :blocked
+  end
+
+  test "public signal constructors do not create arbitrary atoms from external keys" do
+    external_key = "external_key_#{System.unique_integer([:positive])}"
+
+    refute existing_atom?(external_key)
+
+    capability =
+      Capability.new!(%{
+        "signal_type" => "attention_maps",
+        external_key => "ignored",
+        "metadata" => %{external_key => "kept-as-string"}
+      })
+
+    spec =
+      SignalSpec.new!(%{
+        "signal_type" => "attention_maps",
+        external_key => "ignored",
+        "metadata" => %{external_key => "kept-as-string"}
+      })
+
+    ref =
+      SignalRef.new!(%{
+        "trace_id" => "trace-1",
+        "signal_id" => "signal-1",
+        "signal_type" => "attention_maps",
+        external_key => "ignored",
+        "metadata" => %{external_key => "kept-as-string"}
+      })
+
+    assert capability.metadata[external_key] == "kept-as-string"
+    assert spec.metadata[external_key] == "kept-as-string"
+    assert ref.metadata[external_key] == "kept-as-string"
+    refute existing_atom?(external_key)
   end
 
   test "builds canonical tensor summaries and signal records" do
@@ -294,11 +331,8 @@ defmodule CrucibleSignalTest do
 
     assert Jason.decode!(Jason.encode!(record))["schema_version"] == nil
 
-    removed_conversion =
-      <<102, 114, 111, 109, 95, 108, 101, 103, 97, 99, 121>> |> String.to_atom()
-
-    refute function_exported?(Crucible.TensorSummary, removed_conversion, 1)
-    refute function_exported?(Crucible.SignalRecord, removed_conversion, 1)
+    refute function_exported?(Crucible.TensorSummary, :from_legacy, 1)
+    refute function_exported?(Crucible.SignalRecord, :from_legacy, 1)
 
     assert String.starts_with?(
              Crucible.CanonicalJSON.digest(%{b: 2, a: 1}),
@@ -346,5 +380,12 @@ defmodule CrucibleSignalTest do
     assert decoded["token_index"] == -1
     assert decoded["capture_method"] == "axon_predict_output"
     assert get_in(decoded, ["tensor_summary", "top_k"]) |> length() == 3
+  end
+
+  defp existing_atom?(value) do
+    _ = String.to_existing_atom(value)
+    true
+  rescue
+    ArgumentError -> false
   end
 end
