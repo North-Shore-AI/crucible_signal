@@ -3,7 +3,7 @@ defmodule CrucibleSignal.SignalSpec do
   Requested signal shape used by tap plans and adapters.
   """
 
-  alias CrucibleSignal.{CaptureMode, Operation, SafeTerms, SignalType}
+  alias CrucibleSignal.{ActivationMetadata, CaptureMode, Operation, SafeTerms, SignalType}
 
   @derive Jason.Encoder
   defstruct id: nil,
@@ -25,7 +25,8 @@ defmodule CrucibleSignal.SignalSpec do
     with {:ok, raw_signal_type} <- fetch_required(attrs, :signal_type),
          {:ok, signal_type} <- SignalType.normalize(raw_signal_type),
          {:ok, capture_mode} <- CaptureMode.normalize(Map.get(attrs, :capture_mode, :summary)),
-         {:ok, operations} <- normalize_operations(Map.get(attrs, :operations, [:read])) do
+         {:ok, operations} <- normalize_operations(Map.get(attrs, :operations, [:read])),
+         {:ok, metadata} <- ActivationMetadata.normalize(Map.get(attrs, :metadata, %{})) do
       {:ok,
        struct(__MODULE__, %{
          id: Map.get(attrs, :id, "#{signal_type}:#{System.unique_integer([:positive])}"),
@@ -37,7 +38,7 @@ defmodule CrucibleSignal.SignalSpec do
          capture_mode: capture_mode,
          bounds: Map.get(attrs, :bounds, %{}),
          required?: Map.get(attrs, :required?, true),
-         metadata: Map.get(attrs, :metadata, %{})
+         metadata: metadata
        })}
     end
   end

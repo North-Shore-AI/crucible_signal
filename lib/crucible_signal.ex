@@ -55,6 +55,14 @@ defmodule CrucibleSignal do
   @doc "Returns all V5 capability/capture statuses."
   def capability_statuses, do: CrucibleSignal.CapabilityStatus.all()
 
+  @doc "Normalizes and validates canonical activation metadata."
+  defdelegate activation_metadata(metadata), to: CrucibleSignal.ActivationMetadata, as: :normalize
+
+  @doc "Normalizes and validates canonical activation metadata, raising on errors."
+  defdelegate activation_metadata!(metadata),
+    to: CrucibleSignal.ActivationMetadata,
+    as: :normalize!
+
   defdelegate for_final_logits(attrs \\ []), to: CrucibleSignal.SignalRef
   defdelegate for_layer_residual(layer_index, attrs \\ []), to: CrucibleSignal.SignalRef
 
@@ -69,4 +77,5 @@ defmodule CrucibleSignal do
   defdelegate for_logit_lens(layer_index, attrs \\ []), to: CrucibleSignal.SignalRef
   defdelegate for_kv_cache(decode_step, attrs \\ []), to: CrucibleSignal.SignalRef
   defdelegate for_decoded_text(attrs \\ []), to: CrucibleSignal.SignalRef
+  defdelegate for_activation(activation_name, attrs \\ []), to: CrucibleSignal.SignalRef
 end

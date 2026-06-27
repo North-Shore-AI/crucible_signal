@@ -58,6 +58,35 @@ ref =
 summary = TensorSummary.summarize([0.1, 0.4, 0.2], entropy: true)
 ```
 
+## Mechanistic-Interpretability Metadata
+
+Signals can carry TransformerLens-compatible activation metadata without adding
+model-family-specific signal types:
+
+```elixir
+ref =
+  SignalRef.for_activation("blocks.0.attn.hook_q",
+    trace_id: "trace-1",
+    signal_id: "q0"
+  )
+
+ref.signal_type
+#=> :attention_q
+
+ref.metadata
+#=> %{
+#=>   activation_name: "blocks.0.attn.hook_q",
+#=>   component: :attn,
+#=>   layer_index: 0,
+#=>   axes: [:batch, :pos, :head, :d_head]
+#=> }
+```
+
+`CrucibleSignal.activation_metadata/1` validates canonical activation names,
+axes, layer/head indexes, capture mode, and raw artifact references. Activation
+claims with missing or semantically invalid axes fail during construction of
+`SignalRef`, `SignalSpec`, `Capability`, and `Crucible.SignalRecord`.
+
 ## Guides
 
 - [Quickstart](guides/quickstart.md)

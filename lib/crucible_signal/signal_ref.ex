@@ -3,7 +3,15 @@ defmodule CrucibleSignal.SignalRef do
   Stable reference to a captured or derived forward-pass signal.
   """
 
-  alias CrucibleSignal.{CaptureMode, DType, Redaction, SafeTerms, SignalType, TensorShape}
+  alias CrucibleSignal.{
+    ActivationMetadata,
+    CaptureMode,
+    DType,
+    Redaction,
+    SafeTerms,
+    SignalType,
+    TensorShape
+  }
 
   @derive Jason.Encoder
   defstruct trace_id: nil,
@@ -34,7 +42,8 @@ defmodule CrucibleSignal.SignalRef do
          {:ok, capture_mode} <- CaptureMode.normalize(Map.get(attrs, :capture_mode, :summary)),
          {:ok, redaction} <- Redaction.normalize(Map.get(attrs, :redaction, :summary_only)),
          {:ok, dtype} <- DType.normalize(Map.get(attrs, :dtype)),
-         {:ok, shape} <- normalize_shape(Map.get(attrs, :shape)) do
+         {:ok, shape} <- normalize_shape(Map.get(attrs, :shape)),
+         {:ok, metadata} <- ActivationMetadata.normalize(Map.get(attrs, :metadata, %{})) do
       {:ok,
        struct(__MODULE__, %{
          trace_id: Map.fetch!(attrs, :trace_id),
@@ -51,7 +60,7 @@ defmodule CrucibleSignal.SignalRef do
          capture_mode: capture_mode,
          storage_ref: Map.get(attrs, :storage_ref),
          redaction: redaction,
-         metadata: Map.get(attrs, :metadata, %{})
+         metadata: metadata
        })}
     end
   end
@@ -109,6 +118,23 @@ defmodule CrucibleSignal.SignalRef do
   end
 
   def for_decoded_text(attrs \\ []), do: typed_ref(:decoded_text, attrs)
+
+  def for_activation(activation_name, attrs \\ []) when is_binary(activation_name) do
+    attrs = normalize_keyword(attrs)
+
+    signal_type =
+      Keyword.get(attrs, :signal_type, ActivationMetadata.default_signal_type(activation_name))
+
+    metadata =
+      ActivationMetadata.put_activation(Keyword.get(attrs, :metadata, %{}), activation_name)
+
+    typed_ref(
+      signal_type,
+      attrs
+      |> Keyword.put(:signal_type, signal_type)
+      |> Keyword.put(:metadata, metadata)
+    )
+  end
 
   def validate!(%__MODULE__{} = ref) do
     ref

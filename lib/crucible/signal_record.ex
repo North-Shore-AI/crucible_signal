@@ -4,6 +4,7 @@ defmodule Crucible.SignalRecord do
   """
 
   alias Crucible.{TensorRef, TensorSummary}
+  alias CrucibleSignal.ActivationMetadata
 
   @derive Jason.Encoder
   defstruct [
@@ -73,6 +74,5 @@ defmodule Crucible.SignalRecord do
   defp canonical_tensor_ref(ref) when is_map(ref), do: {:ok, struct(TensorRef, ref)}
   defp canonical_tensor_ref(_ref), do: {:error, :invalid_tensor_ref}
 
-  defp canonical_metadata(metadata) when is_map(metadata), do: {:ok, metadata}
-  defp canonical_metadata(_metadata), do: {:error, :invalid_metadata}
+  defp canonical_metadata(metadata), do: ActivationMetadata.normalize(metadata)
 end
